@@ -56,9 +56,15 @@ class Settings(BaseSettings):
 
     @property
     def resolved_database_url(self) -> str:
-        if self.database_url.strip():
-            return self.database_url.strip()
-        return f"sqlite:///{self.sqlite_path}"
+        url = self.database_url.strip()
+        if not url:
+            return f"sqlite:///{self.sqlite_path}"
+        # Railway / Heroku often emit postgres://; SQLAlchemy + psycopg3 need postgresql+psycopg://
+        if url.startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://") :]
+        if url.startswith("postgresql://") and "+psycopg" not in url.split("://", 1)[0]:
+            url = "postgresql+psycopg://" + url[len("postgresql://") :]
+        return url
 
     @property
     def resolved_anthropic_key(self) -> str:
