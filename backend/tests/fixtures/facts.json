@@ -1,0 +1,95 @@
+{
+  "claims": [
+    {
+      "claim_id": "C001",
+      "statement": "Capacity is 3 tonne",
+      "claim_type": "spec",
+      "evidence": [
+        {
+          "source_id": 1,
+          "source_label": "subject",
+          "excerpt": "Capacity: 3 tonne"
+        }
+      ],
+      "status": "VERIFIED",
+      "target_location": "specifications"
+    },
+    {
+      "claim_id": "C002",
+      "statement": "Minimum height is 85mm",
+      "claim_type": "spec",
+      "evidence": [
+        {
+          "source_id": 1,
+          "source_label": "subject",
+          "excerpt": "Minimum height: 85mm"
+        }
+      ],
+      "status": "VERIFIED",
+      "target_location": "specifications"
+    },
+    {
+      "claim_id": "C003",
+      "statement": "Maximum lift height is 500mm",
+      "claim_type": "spec",
+      "evidence": [
+        {
+          "source_id": 1,
+          "source_label": "subject",
+          "excerpt": "maximum lift height of 500mm"
+        }
+      ],
+      "status": "VERIFIED",
+      "target_location": "specifications"
+    },
+    {
+      "claim_id": "C004",
+      "statement": "Low profile design suits sports cars and lowered vehicles",
+      "claim_type": "feature",
+      "evidence": [
+        {
+          "source_id": 1,
+          "source_label": "subject",
+          "excerpt": "Low profile design for sports cars and lowered vehicles"
+        }
+      ],
+      "status": "VERIFIED",
+      "target_location": "features"
+    },
+    {
+      "claim_id": "C005",
+      "statement": "Includes safety overload valve",
+      "claim_type": "safety",
+      "evidence": [
+        {
+          "source_id": 1,
+          "source_label": "subject",
+          "excerpt": "Safety overload valve"
+        }
+      ],
+      "status": "VERIFIED",
+      "target_location": "features"
+    },
+    {
+      "claim_id": "C006",
+      "statement": "Fabricated claim with missing excerpt",
+      "claim_type": "other",
+      "evidence": [
+        {
+          "source_id": 1,
+          "source_label": "subject",
+          "excerpt": "THIS EXCERPT DOES NOT EXIST IN SOURCE"
+        }
+      ],
+      "status": "VERIFIED",
+      "target_location": "overview"
+    }
+  ],
+  "gaps": [
+    "Competitor lists dual pump",
+    "Competitor mentions carrying handle"
+  ],
+  "enforcement_notes": [],
+  "verified_count": 0,
+  "excluded_count": 0
+}

@@ -1,0 +1,26 @@
+{
+  "identity": {
+    "classification": "Brand",
+    "reason": "SGS owned brand with limited independent exact sellers in fixture data",
+    "brand_name": "SGS",
+    "product_name": "SGS 3 Ton Low Profile Trolley Jack",
+    "search_queries": ["SGS 3 ton low profile trolley jack", "3 tonne low profile trolley jack UK"],
+    "exact_seller_count": 1
+  },
+  "sources": [
+    {
+      "url": "https://example-competitor.test/3-tonne-low-profile-jack",
+      "role": "competitor",
+      "domain": "example-competitor.test",
+      "title": "3 Tonne Low Profile Garage Jack",
+      "reason": "fixture competitor"
+    },
+    {
+      "url": "https://example-tools.test/low-profile-trolley-jack-3t",
+      "role": "competitor",
+      "domain": "example-tools.test",
+      "title": "Low Profile Trolley Jack 3T",
+      "reason": "fixture competitor"
+    }
+  ]
+}

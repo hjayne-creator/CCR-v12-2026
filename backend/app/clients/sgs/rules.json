@@ -1,0 +1,212 @@
+{
+  "client_slug": "sgs-engineering",
+  "version": "1.0",
+  "hierarchy": [
+    "factual_accuracy",
+    "data_integrity",
+    "mandatory_client_rules",
+    "content_completeness",
+    "seo_editorial"
+  ],
+  "rules": [
+    {
+      "rule_id": "ACC-001",
+      "description": "Exact product identity must be preserved; do not invent part numbers or model names",
+      "priority": "MANDATORY",
+      "scope": [
+        "facts",
+        "write",
+        "qc"
+      ],
+      "validation_method": "HYBRID",
+      "on_failure": "FAIL",
+      "params": {
+        "definitive_identifiers": [
+          "manufacturer product code",
+          "manufacturer model"
+        ]
+      }
+    },
+    {
+      "rule_id": "ACC-002",
+      "description": "No unsupported product claims; every factual statement must cite verified claim_ids",
+      "priority": "MANDATORY",
+      "scope": [
+        "write",
+        "qc"
+      ],
+      "validation_method": "HYBRID",
+      "on_failure": "TARGETED_REPAIR",
+      "params": {}
+    },
+    {
+      "rule_id": "ACC-003",
+      "description": "Claim evidence excerpts must appear verbatim in stored source text",
+      "priority": "MANDATORY",
+      "scope": [
+        "facts",
+        "qc"
+      ],
+      "validation_method": "CODE",
+      "on_failure": "FAIL",
+      "params": {}
+    },
+    {
+      "rule_id": "ACC-004",
+      "description": "Do not use untrusted domains as factual evidence",
+      "priority": "MANDATORY",
+      "scope": [
+        "research",
+        "facts"
+      ],
+      "validation_method": "CODE",
+      "on_failure": "FAIL",
+      "params": {
+        "untrusted_domains": [
+          "ebay.co.uk",
+          "ebay.com",
+          "gumtree.com",
+          "preloved.co.uk",
+          "facebook.com",
+          "reddit.com",
+          "youtube.com",
+          "quora.com"
+        ]
+      }
+    },
+    {
+      "rule_id": "STY-001",
+      "description": "Use UK English spelling",
+      "priority": "MANDATORY",
+      "scope": [
+        "write",
+        "qc"
+      ],
+      "validation_method": "CODE",
+      "on_failure": "AUTO_CORRECT",
+      "params": {
+        "uk_spelling": true
+      }
+    },
+    {
+      "rule_id": "STY-002",
+      "description": "Prohibit unsupported marketing language",
+      "priority": "MANDATORY",
+      "scope": [
+        "write",
+        "qc"
+      ],
+      "validation_method": "CODE",
+      "on_failure": "AUTO_CORRECT",
+      "params": {
+        "banned_terms": [
+          "best",
+          "safest",
+          "professional-grade",
+          "industrial",
+          "UK-made",
+          "commercial use",
+          "industry-leading",
+          "unparalleled",
+          "exceptional performance"
+        ]
+      }
+    },
+    {
+      "rule_id": "STY-003",
+      "description": "No outbound links customer-facing copy",
+      "priority": "MANDATORY",
+      "scope": [
+        "write",
+        "qc"
+      ],
+      "validation_method": "CODE",
+      "on_failure": "AUTO_CORRECT",
+      "params": {
+        "forbid_links": true,
+        "forbid_competitor_names": true
+      }
+    },
+    {
+      "rule_id": "SEO-001",
+      "description": "Title must not exceed character limit",
+      "priority": "MANDATORY",
+      "scope": [
+        "write",
+        "qc"
+      ],
+      "validation_method": "CODE",
+      "on_failure": "TARGETED_REPAIR",
+      "params": {
+        "title_max_chars": 150,
+        "title_structure": "brand + model/size + product category + most useful verified specifications"
+      }
+    },
+    {
+      "rule_id": "SEO-002",
+      "description": "Body copy must not exceed max word count",
+      "priority": "MANDATORY",
+      "scope": [
+        "write",
+        "qc"
+      ],
+      "validation_method": "CODE",
+      "on_failure": "TARGETED_REPAIR",
+      "params": {
+        "max_words": 1500
+      }
+    },
+    {
+      "rule_id": "FMT-001",
+      "description": "Required output structure: title, overview, features, specifications",
+      "priority": "MANDATORY",
+      "scope": [
+        "write",
+        "qc"
+      ],
+      "validation_method": "CODE",
+      "on_failure": "TARGETED_REPAIR",
+      "params": {
+        "required_sections": [
+          "title",
+          "overview",
+          "features",
+          "specifications"
+        ]
+      }
+    },
+    {
+      "rule_id": "GEO-001",
+      "description": "Address verified competitive content gaps when available",
+      "priority": "PREFERRED",
+      "scope": [
+        "facts",
+        "write",
+        "qc"
+      ],
+      "validation_method": "HYBRID",
+      "on_failure": "FLAG",
+      "params": {}
+    },
+    {
+      "rule_id": "CLT-001",
+      "description": "Site benefits limited to approved SGS benefits",
+      "priority": "MANDATORY",
+      "scope": [
+        "write",
+        "qc"
+      ],
+      "validation_method": "LLM",
+      "on_failure": "TARGETED_REPAIR",
+      "params": {
+        "allowed_site_benefits": [
+          "UK customer support",
+          "Derby showroom / trade counter",
+          "Available warranty and service support",
+          "Delivery options",
+          "Return policy"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "title": "SGS 3 Ton Low Profile Trolley Jack 85–500mm",
+  "overview": [
+    {
+      "text": "The SGS 3 Ton Low Profile Trolley Jack is designed for vehicles with limited ground clearance, with a minimum height of 85mm and a maximum lift height of 500mm.",
+      "claim_ids": ["C001", "C002", "C003", "C004"]
+    }
+  ],
+  "features": [
+    {
+      "feature": "Low profile design",
+      "benefit": "Suits sports cars and lowered vehicles",
+      "claim_ids": ["C004"]
+    },
+    {
+      "feature": "Safety overload valve",
+      "benefit": "Helps protect against overload during lifting",
+      "claim_ids": ["C005"]
+    }
+  ],
+  "specifications": [
+    { "attribute": "Capacity", "value": "3 tonne", "claim_ids": ["C001"] },
+    { "attribute": "Minimum height", "value": "85mm", "claim_ids": ["C002"] },
+    { "attribute": "Maximum height", "value": "500mm", "claim_ids": ["C003"] }
+  ],
+  "faqs": [],
+  "site_benefits": [
+    { "text": "UK customer support from SGS Engineering", "claim_ids": [] },
+    { "text": "Delivery options and return policy available", "claim_ids": [] }
+  ],
+  "gaps_addressed": ["Competitor lists dual pump"],
+  "word_count": 0
+}

@@ -1,0 +1,18 @@
+{
+  "sources": [
+    {
+      "url": "https://example-competitor.test/3-tonne-low-profile-jack",
+      "role": "competitor",
+      "title": "3 Tonne Low Profile Garage Jack",
+      "markdown": "# 3 Tonne Low Profile Garage Jack\n\nCapacity 3 tonne. Min height 80mm. Max height 505mm. Dual pump. Carrying handle. Rubber saddle.\n\nIncludes carry case. CE marked.\n",
+      "html": ""
+    },
+    {
+      "url": "https://example-tools.test/low-profile-trolley-jack-3t",
+      "role": "competitor",
+      "title": "Low Profile Trolley Jack 3T",
+      "markdown": "# Low Profile Trolley Jack 3T\n\n3 tonne capacity. Lift range 85-520mm. Steel construction. Swivel castors. Overload protection valve.\n",
+      "html": ""
+    }
+  ]
+}
