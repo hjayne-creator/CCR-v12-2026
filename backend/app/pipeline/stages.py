@@ -395,6 +395,88 @@ async def stage04_facts(
     return enforce_fact_excerpts(ledger, source_texts)
 
 
+def _comparison_params(client_slug: str) -> dict[str, Any]:
+    pack = load_client_rules(client_slug)
+    cmp_rule = next((r for r in pack.rules if r.rule_id == "CMP-001"), None)
+    return dict(cmp_rule.params) if cmp_rule else {
+        "min_alternatives": 3,
+        "max_alternatives": 5,
+        "min_overlapping_specs": 2,
+        "column_label_style": "brand_model",
+        "drop_incomplete_rows": True,
+        "allowed_identity": ["Brand", "Reseller"],
+    }
+
+
+def _alternatives_for_run(session: Session, run_id: int, *, brand_hints: list[str] | None = None) -> list[dict[str, Any]]:
+    from app.engine.comparison import brand_model_label
+
+    sources = session.exec(select(Source).where(Source.run_id == run_id)).all()
+    alts = []
+    for s in sources:
+        if s.role != "competitor":
+            continue
+        if not (s.markdown or "").strip():
+            continue
+        title = s.title or s.domain or s.url
+        alts.append(
+            {
+                "source_id": s.id,
+                "title": title,
+                "label": brand_model_label(title, brand_hints=brand_hints),
+                "domain": s.domain,
+                "url": s.url,
+                "excerpt": (s.markdown or "")[:4000],
+            }
+        )
+    return alts
+
+
+def _suitable_for_run(
+    session: Session,
+    run: Run,
+    client: Client,
+    ledger: FactLedger,
+) -> tuple[list[dict[str, Any]], bool, dict[str, Any]]:
+    from app.engine.comparison import brand_model_label, suitable_alternatives
+
+    cmp_params = _comparison_params(client.slug)
+    min_alt = int(cmp_params.get("min_alternatives") or 3)
+    max_alt = int(cmp_params.get("max_alternatives") or 5)
+    min_overlap = int(cmp_params.get("min_overlapping_specs") or 2)
+    allowed_identity = list(cmp_params.get("allowed_identity") or ["Brand", "Reseller"])
+
+    # Brand and Reseller both allowed unless params restrict
+    identity_ok = not run.identity_class or run.identity_class in allowed_identity
+
+    subject = session.exec(
+        select(Source).where(Source.run_id == run.id, Source.role == "subject")
+    ).first()
+    raw_alts = _alternatives_for_run(session, run.id, brand_hints=client.owned_brands)
+    suitable = suitable_alternatives(
+        ledger=ledger,
+        alternatives=raw_alts,
+        subject_source_id=subject.id if subject else None,
+        min_overlap=min_overlap,
+        attribute_examples=list(cmp_params.get("attribute_examples") or []),
+    )[:max_alt]
+
+    eligible = identity_ok and len(suitable) >= min_alt
+    subject_label = brand_model_label(
+        (subject.title if subject else "") or run.url,
+        brand_hints=client.owned_brands,
+    )
+    meta = {
+        "cmp_params": cmp_params,
+        "subject_label": subject_label,
+        "subject_title": (subject.title if subject else "") or run.url,
+        "raw_alternative_count": len(raw_alts),
+        "suitable_count": len(suitable),
+        "identity_ok": identity_ok,
+    }
+    return suitable, eligible, meta
+
+
 async def stage05_write(
     session: Session,
     run: Run,
@@ -405,6 +487,11 @@ async def stage05_write(
     writer_model: str,
     use_fixtures: bool = False,
 ) -> PdpDraft:
+    from app.engine.comparison import finalize_comparison_draft
+
+    suitable, comparison_eligible, cmp_meta = _suitable_for_run(session, run, client, ledger)
+    cmp_params = cmp_meta["cmp_params"]
+
     if use_fixtures:
         try:
             draft = PdpDraft.model_validate(load_json("draft.json"))
@@ -416,6 +503,13 @@ async def stage05_write(
                 f.claim_ids = [c for c in f.claim_ids if c in verified_ids]
             for s in draft.specifications:
                 s.claim_ids = [c for c in s.claim_ids if c in verified_ids]
+            for q in draft.faqs:
+                q.claim_ids = [c for c in q.claim_ids if c in verified_ids]
+            finalize_comparison_draft(
+                draft,
+                eligible=comparison_eligible,
+                drop_incomplete_rows=bool(cmp_params.get("drop_incomplete_rows", True)),
+            )
             draft.word_count = word_count(draft_to_plaintext(draft))
             return draft
         except FileNotFoundError:
@@ -427,6 +521,12 @@ async def stage05_write(
     seo = next((r for r in pack.rules if r.rule_id == "SEO-001"), None)
     seo2 = next((r for r in pack.rules if r.rule_id == "SEO-002"), None)
     clt = next((r for r in pack.rules if r.rule_id == "CLT-001"), None)
+    faq_rule = next((r for r in pack.rules if r.rule_id == "FAQ-001"), None)
+
+    from app.engine.faq_research import research_faq_context
+
+    all_sources = session.exec(select(Source).where(Source.run_id == run.id)).all()
+    faq_ctx = research_faq_context(ledger=ledger, sources=list(all_sources))
 
     system = _prompt("write.md")
     user = json.dumps(
@@ -435,8 +535,28 @@ async def stage05_write(
             "title_max_chars": (seo.params.get("title_max_chars") if seo else client.title_max_chars),
             "max_words": (seo2.params.get("max_words") if seo2 else client.max_words),
             "allowed_site_benefits": (clt.params.get("allowed_site_benefits") if clt else []),
+            "faq_rules": dict(faq_rule.params) if faq_rule else {"min_faqs": 3, "max_faqs": 6},
             "verified_claims": verified,
             "gaps": ledger.gaps,
+            "research_gaps": faq_ctx["research_gaps"],
+            "research_question_seeds": faq_ctx["research_question_seeds"],
+            "faq_relevant_claims": faq_ctx["faq_relevant_claims"],
+            "subject_title": cmp_meta["subject_title"],
+            "subject_column_label": cmp_meta["subject_label"],
+            "comparison_eligible": comparison_eligible,
+            "comparison_rules": cmp_params,
+            "suitable_alternative_count": len(suitable),
+            "raw_alternative_count": cmp_meta["raw_alternative_count"],
+            "alternatives": [
+                {
+                    "label": a["label"],
+                    "title": a["title"],
+                    "domain": a["domain"],
+                    "overlap_keys": a.get("overlap_keys") or [],
+                    "excerpt": a["excerpt"],
+                }
+                for a in suitable
+            ],
         },
         ensure_ascii=False,
     )
@@ -449,6 +569,11 @@ async def stage05_write(
         max_tokens=10000,
     )
     await _record_usage(session, run, 5, "writer", meta)
+    finalize_comparison_draft(
+        draft,
+        eligible=comparison_eligible,
+        drop_incomplete_rows=bool(cmp_params.get("drop_incomplete_rows", True)),
+    )
     draft.word_count = word_count(draft_to_plaintext(draft))
     session.commit()
     return draft
@@ -470,13 +595,26 @@ async def stage06_qc(
     pack = load_client_rules(client.slug)
     sources = session.exec(select(Source).where(Source.run_id == run.id)).all()
     source_texts = {s.id: (s.markdown or s.html or "") for s in sources}
-    competitor_names = [
-        (p.title.split()[0] if p.title else p.domain)
-        for p in plan.sources
-        if p.role == "competitor"
-    ]
-    # Prefer domain brand-ish labels
-    competitor_names = [n for n in competitor_names if n and n.lower() not in {"www", "http", "https"}]
+    from app.engine.competitor_names import extract_competitor_name_tokens
+
+    subject_src = next((x for x in sources if x.role == "subject"), None)
+    competitor_names = extract_competitor_name_tokens(
+        competitor_sources=[
+            {"domain": p.domain, "title": p.title}
+            for p in plan.sources
+            if p.role == "competitor"
+        ]
+        + [
+            {"domain": x.domain, "title": x.title}
+            for x in sources
+            if x.role == "competitor"
+        ],
+        subject_title=(subject_src.title if subject_src else "") or (plan.identity.product_name or ""),
+        owned_brands=client.owned_brands,
+        subject_domain=client.domain or (subject_src.domain if subject_src else ""),
+    )
+    suitable, comparison_eligible, _cmp_meta = _suitable_for_run(session, run, client, ledger)
+    alternative_count = len(suitable)
 
     repairs: list[str] = []
     all_results: list[RuleResult] = []
@@ -491,6 +629,8 @@ async def stage06_qc(
                 source_texts=source_texts,
                 competitor_names=competitor_names,
                 gaps=ledger.gaps,
+                alternative_count=alternative_count,
+                comparison_eligible=comparison_eligible,
             ),
             stage="qc",
             apply_fixes=True,
@@ -502,7 +642,8 @@ async def stage06_qc(
         failed = [r for r in outcome.results if r.status == "FAIL"]
         # LLM QA only when material code failures remain that need repair (skip in fixture mode)
         needs_llm = (not use_fixtures) and any(
-            r.rule_id in {"ACC-002", "SEO-001", "SEO-002", "FMT-001", "CLT-001"} for r in failed
+            r.rule_id in {"ACC-002", "SEO-001", "SEO-002", "FMT-001", "FAQ-001", "CMP-001", "CLT-001"}
+            for r in failed
         )
         if needs_llm or ((not use_fixtures) and any(r.status == "FLAG" for r in outcome.results)):
             system = _prompt("qc.md")
@@ -538,6 +679,8 @@ async def stage06_qc(
                         source_texts=source_texts,
                         competitor_names=competitor_names,
                         gaps=ledger.gaps,
+                        alternative_count=alternative_count,
+                        comparison_eligible=comparison_eligible,
                     ),
                     stage="qc",
                     apply_fixes=True,

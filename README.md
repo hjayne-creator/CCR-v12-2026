@@ -59,6 +59,8 @@ Deterministic checks live in [`backend/app/engine/validators.py`](backend/app/en
 | **STY** | Style | UK spelling, banned marketing language, no links / competitor names |
 | **SEO** | SEO | Title length, word count, title structure |
 | **FMT** | Format | Required output structure (title, overview, features, specs) |
+| **FAQ** | FAQs | 3–6 questions derived from research gaps, page question seeds, and verified claims |
+| **CMP** | Comparison | How it compares table (≥3 suitable alts with overlapping verified specs; Brand + Reseller; brand+model columns; incomplete rows dropped) |
 | **GEO** | Gap / GEO coverage | Competitive content gaps addressed |
 | **CLT** | Client | Client-specific policy (e.g. allowed SGS site benefits) |
 

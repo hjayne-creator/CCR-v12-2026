@@ -48,8 +48,12 @@ async def test_full_fixture_pipeline(tmp_path, monkeypatch):
         compliance = (qc.artifact or {}).get("compliance") or {}
         results = compliance.get("results") or []
         rule_ids = {r["rule_id"] for r in results}
-        for required in ("ACC-003", "STY-001", "STY-002", "SEO-001", "SEO-002", "FMT-001"):
+        for required in ("ACC-003", "STY-001", "STY-002", "SEO-001", "SEO-002", "FMT-001", "FAQ-001", "CMP-001"):
             assert required in rule_ids
+        cmp = next(r for r in results if r["rule_id"] == "CMP-001")
+        assert cmp["status"] in {"SKIP", "PASS"}  # fixture has <3 alternatives
+        faq = next(r for r in results if r["rule_id"] == "FAQ-001")
+        assert faq["status"] == "PASS"
         assert compliance.get("disposition") in {"RELEASE", "HOLD", "REJECT"}
         assert (qc.artifact or {}).get("draft", {}).get("title")
 

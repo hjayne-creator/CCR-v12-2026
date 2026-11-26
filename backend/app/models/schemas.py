@@ -135,12 +135,38 @@ class FaqOut(BaseModel):
     claim_ids: list[str] = Field(default_factory=list)
 
 
+class ComparisonRow(BaseModel):
+    dimension: str
+    values: list[str] = Field(
+        description="One cell per column, same order as columns. Use empty string when a value is not verified for that product."
+    )
+
+
+class ComparisonTable(BaseModel):
+    """Selection-aid table. Omit the whole object when fewer than min_alternatives qualify."""
+
+    columns: list[str] = Field(
+        description="First column is the subject product, then 3–5 alternatives (product titles)"
+    )
+    rows: list[ComparisonRow] = Field(default_factory=list)
+    choose_if: list[str] = Field(
+        default_factory=list,
+        description="Optional one 'Choose this if…' line per column, same order as columns",
+    )
+    claim_ids: list[str] = Field(default_factory=list)
+    omission_reason: str = Field(
+        default="",
+        description="When comparison is null/omitted at write time this is unused; kept for repairs",
+    )
+
+
 class PdpDraft(BaseModel):
     title: str
     overview: list[TextBlock] = Field(default_factory=list)
     features: list[FeatureItem] = Field(default_factory=list)
     specifications: list[SpecRow] = Field(default_factory=list)
     faqs: list[FaqOut] = Field(default_factory=list)
+    comparison: Optional[ComparisonTable] = None
     site_benefits: list[TextBlock] = Field(default_factory=list)
     gaps_addressed: list[str] = Field(default_factory=list)
     word_count: int = 0

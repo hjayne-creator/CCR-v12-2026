@@ -39,6 +39,8 @@ class RulesMeta(BaseModel):
             "STY": "Style — spelling, banned terms, links / competitor names",
             "SEO": "SEO — title length, word count, title structure",
             "FMT": "Format — required output structure",
+            "FAQ": "FAQs — 3–6 research-derived questions",
+            "CMP": "Comparison — How it compares table (conditional)",
             "GEO": "Gap / GEO — competitive content gaps",
             "CLT": "Client — client-specific policy",
         }

@@ -19,12 +19,20 @@ type RuleResult = {
   auto_fixed?: boolean;
 };
 
+type ComparisonTable = {
+  columns: string[];
+  rows: Array<{ dimension: string; values: string[] }>;
+  choose_if?: string[];
+  claim_ids?: string[];
+};
+
 type Draft = {
   title: string;
   overview: Array<{ text: string; claim_ids: string[] }>;
   features: Array<{ feature: string; benefit: string; claim_ids: string[] }>;
   specifications: Array<{ attribute: string; value: string; claim_ids: string[] }>;
   faqs: Array<{ question: string; answer: string; claim_ids: string[] }>;
+  comparison?: ComparisonTable | null;
   site_benefits: Array<{ text: string; claim_ids: string[] }>;
   gaps_addressed?: string[];
   word_count?: number;
@@ -90,6 +98,19 @@ export default function RunDetail() {
       "## FAQs",
       ...(draft.faqs || []).map((q) => `### ${q.question}\n${q.answer}`),
       "",
+      ...(draft.comparison
+        ? [
+            "## How it compares",
+            `| ${(draft.comparison.columns || []).join(" | ")} |`,
+            `| ${(draft.comparison.columns || []).map(() => "---").join(" | ")} |`,
+            ...(draft.comparison.rows || []).map(
+              (row) => `| ${row.dimension} | ${(row.values || []).join(" | ")} |`
+            ),
+            "",
+            ...((draft.comparison.choose_if || []).map((line, i) => `- ${draft.comparison!.columns[i] || "Column"}: ${line}`)),
+            "",
+          ]
+        : []),
       "## Site benefits",
       ...(draft.site_benefits || []).map((b) => `- ${b.text}`),
     ];
@@ -192,6 +213,67 @@ export default function RunDetail() {
               </tbody>
             </table>
           </div>
+          <div className="draft-block">
+            <h3>FAQs</h3>
+            {(draft.faqs || []).length === 0 ? (
+              <p className="muted">No FAQs in this draft (FAQ-001 expects 3–6).</p>
+            ) : (
+              <ul>
+                {(draft.faqs || []).map((q, i) => (
+                  <li key={i} style={{ marginBottom: 10 }}>
+                    <strong>{q.question}</strong>
+                    <div>{q.answer}</div>
+                    <div className="claim-ids">{(q.claim_ids || []).join(", ")}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {draft.comparison && (draft.comparison.columns || []).length > 0 ? (
+            <div className="draft-block">
+              <h3>How it compares</h3>
+              <div style={{ overflowX: "auto" }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Attribute</th>
+                      {(draft.comparison.columns || []).map((col) => (
+                        <th key={col}>{col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(draft.comparison.rows || []).map((row, i) => (
+                      <tr key={i}>
+                        <td>{row.dimension}</td>
+                        {(row.values || []).map((v, j) => (
+                          <td key={j}>{v || <span className="muted">—</span>}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {(draft.comparison.choose_if || []).length > 0 && (
+                <ul>
+                  {(draft.comparison.choose_if || []).map((line, i) => (
+                    <li key={i}>
+                      <strong>{draft.comparison!.columns[i] || `Column ${i + 1}`}:</strong> {line}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="claim-ids">{(draft.comparison.claim_ids || []).join(", ")}</div>
+            </div>
+          ) : (
+            <div className="draft-block">
+              <h3>How it compares</h3>
+              <p className="muted">
+                Omitted — fewer than three suitable alternatives that share overlapping verified specs with the subject (CMP-001).
+                Incomplete rows are dropped; sources stay internal (not in PDP copy).
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -252,6 +334,8 @@ export default function RunDetail() {
               <tr><td className="mono">STY</td><td>Style</td><td>UK spelling, banned marketing language, no links / competitor names</td></tr>
               <tr><td className="mono">SEO</td><td>SEO</td><td>Title length, word count, title structure</td></tr>
               <tr><td className="mono">FMT</td><td>Format</td><td>Required output structure (title, overview, features, specs)</td></tr>
+              <tr><td className="mono">FAQ</td><td>FAQs</td><td>3–6 research-derived questions with verified answers</td></tr>
+              <tr><td className="mono">CMP</td><td>Comparison</td><td>How it compares table — only when enough verified alternatives exist</td></tr>
               <tr><td className="mono">GEO</td><td>Gap / GEO coverage</td><td>Competitive content gaps addressed</td></tr>
               <tr><td className="mono">CLT</td><td>Client</td><td>Client-specific policy (e.g. allowed SGS site benefits)</td></tr>
             </tbody>

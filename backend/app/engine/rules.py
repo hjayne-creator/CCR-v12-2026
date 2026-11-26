@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from functools import lru_cache
 from pathlib import Path
 
 from app.models.schemas import ClientRulesPack, RuleDef
@@ -31,8 +30,8 @@ def rules_path_for(slug: str) -> Path:
     return _CLIENTS / _folder_for(slug) / "rules.json"
 
 
-@lru_cache
 def load_client_rules(slug: str) -> ClientRulesPack:
+    """Load rules from disk (no cache — UI edits must apply to the next run)."""
     rules_path = rules_path_for(slug)
     if not rules_path.exists():
         raise FileNotFoundError(f"No rules pack for client slug={slug!r} at {rules_path}")
@@ -41,18 +40,12 @@ def load_client_rules(slug: str) -> ClientRulesPack:
 
 
 def save_client_rules(slug: str, pack: ClientRulesPack) -> ClientRulesPack:
-    """Validate and write rules.json; clear loader cache so next run sees updates."""
-    if pack.client_slug and pack.client_slug not in (slug, SLUG_TO_FOLDER.get(slug, slug)):
-        # Keep slug consistent with the URL/path being saved
-        pack = pack.model_copy(update={"client_slug": slug})
-    else:
-        pack = pack.model_copy(update={"client_slug": slug})
-
+    """Validate and write rules.json so the next run sees updates."""
+    pack = pack.model_copy(update={"client_slug": slug})
     path = rules_path_for(slug)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = pack.model_dump(mode="json")
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    load_client_rules.cache_clear()
     return load_client_rules(slug)
 
 

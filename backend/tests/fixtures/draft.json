@@ -23,7 +23,28 @@
     { "attribute": "Minimum height", "value": "85mm", "claim_ids": ["C002"] },
     { "attribute": "Maximum height", "value": "500mm", "claim_ids": ["C003"] }
   ],
-  "faqs": [],
+  "faqs": [
+    {
+      "question": "What is the lifting capacity?",
+      "answer": "This trolley jack has a 3 tonne capacity.",
+      "claim_ids": ["C001"]
+    },
+    {
+      "question": "What ground clearance does it need?",
+      "answer": "The minimum height is 85mm, so it suits vehicles with limited ground clearance.",
+      "claim_ids": ["C002", "C004"]
+    },
+    {
+      "question": "How high can it lift?",
+      "answer": "Maximum lift height is 500mm.",
+      "claim_ids": ["C003"]
+    },
+    {
+      "question": "Does it include overload protection?",
+      "answer": "Yes, it includes a safety overload valve.",
+      "claim_ids": ["C005"]
+    }
+  ],
   "site_benefits": [
     { "text": "UK customer support from SGS Engineering", "claim_ids": [] },
     { "text": "Delivery options and return policy available", "claim_ids": [] }

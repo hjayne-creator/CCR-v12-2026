@@ -62,7 +62,7 @@ def seed_sgs() -> Client:
             session.add(client)
             session.commit()
             session.refresh(client)
-            logger.info("Updated SGS Engineering client id=%s", client.id)
+            logger.info("Updated SGS Engineering client id=%s rules=%s", client.id, pack.version)
         return client
 
 

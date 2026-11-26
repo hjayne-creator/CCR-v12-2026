@@ -1,6 +1,6 @@
 {
   "client_slug": "sgs-engineering",
-  "version": "1.0",
+  "version": "1.3",
   "hierarchy": [
     "factual_accuracy",
     "data_integrity",
@@ -13,28 +13,18 @@
       "rule_id": "ACC-001",
       "description": "Exact product identity must be preserved; do not invent part numbers or model names",
       "priority": "MANDATORY",
-      "scope": [
-        "facts",
-        "write",
-        "qc"
-      ],
+      "scope": ["facts", "write", "qc"],
       "validation_method": "HYBRID",
       "on_failure": "FAIL",
       "params": {
-        "definitive_identifiers": [
-          "manufacturer product code",
-          "manufacturer model"
-        ]
+        "definitive_identifiers": ["manufacturer product code", "manufacturer model"]
       }
     },
     {
       "rule_id": "ACC-002",
       "description": "No unsupported product claims; every factual statement must cite verified claim_ids",
       "priority": "MANDATORY",
-      "scope": [
-        "write",
-        "qc"
-      ],
+      "scope": ["write", "qc"],
       "validation_method": "HYBRID",
       "on_failure": "TARGETED_REPAIR",
       "params": {}
@@ -43,10 +33,7 @@
       "rule_id": "ACC-003",
       "description": "Claim evidence excerpts must appear verbatim in stored source text",
       "priority": "MANDATORY",
-      "scope": [
-        "facts",
-        "qc"
-      ],
+      "scope": ["facts", "qc"],
       "validation_method": "CODE",
       "on_failure": "FAIL",
       "params": {}
@@ -55,10 +42,7 @@
       "rule_id": "ACC-004",
       "description": "Do not use untrusted domains as factual evidence",
       "priority": "MANDATORY",
-      "scope": [
-        "research",
-        "facts"
-      ],
+      "scope": ["research", "facts"],
       "validation_method": "CODE",
       "on_failure": "FAIL",
       "params": {
@@ -78,10 +62,7 @@
       "rule_id": "STY-001",
       "description": "Use UK English spelling",
       "priority": "MANDATORY",
-      "scope": [
-        "write",
-        "qc"
-      ],
+      "scope": ["write", "qc"],
       "validation_method": "CODE",
       "on_failure": "AUTO_CORRECT",
       "params": {
@@ -92,10 +73,7 @@
       "rule_id": "STY-002",
       "description": "Prohibit unsupported marketing language",
       "priority": "MANDATORY",
-      "scope": [
-        "write",
-        "qc"
-      ],
+      "scope": ["write", "qc"],
       "validation_method": "CODE",
       "on_failure": "AUTO_CORRECT",
       "params": {
@@ -114,27 +92,22 @@
     },
     {
       "rule_id": "STY-003",
-      "description": "No outbound links customer-facing copy",
+      "description": "No outbound links; competitor names only allowed as comparison table column headers",
       "priority": "MANDATORY",
-      "scope": [
-        "write",
-        "qc"
-      ],
+      "scope": ["write", "qc"],
       "validation_method": "CODE",
       "on_failure": "AUTO_CORRECT",
       "params": {
         "forbid_links": true,
-        "forbid_competitor_names": true
+        "forbid_competitor_names": true,
+        "allow_competitor_names_in_comparison_columns": true
       }
     },
     {
       "rule_id": "SEO-001",
       "description": "Title must not exceed character limit",
       "priority": "MANDATORY",
-      "scope": [
-        "write",
-        "qc"
-      ],
+      "scope": ["write", "qc"],
       "validation_method": "CODE",
       "on_failure": "TARGETED_REPAIR",
       "params": {
@@ -146,10 +119,7 @@
       "rule_id": "SEO-002",
       "description": "Body copy must not exceed max word count",
       "priority": "MANDATORY",
-      "scope": [
-        "write",
-        "qc"
-      ],
+      "scope": ["write", "qc"],
       "validation_method": "CODE",
       "on_failure": "TARGETED_REPAIR",
       "params": {
@@ -160,30 +130,66 @@
       "rule_id": "FMT-001",
       "description": "Required output structure: title, overview, features, specifications",
       "priority": "MANDATORY",
-      "scope": [
-        "write",
-        "qc"
-      ],
+      "scope": ["write", "qc"],
       "validation_method": "CODE",
       "on_failure": "TARGETED_REPAIR",
       "params": {
-        "required_sections": [
-          "title",
-          "overview",
-          "features",
-          "specifications"
-        ]
+        "required_sections": ["title", "overview", "features", "specifications"]
+      }
+    },
+    {
+      "rule_id": "FAQ-001",
+      "description": "Include 3–6 FAQs derived from research (gaps, competitor questions, verified product facts)",
+      "priority": "MANDATORY",
+      "scope": ["write", "qc"],
+      "validation_method": "CODE",
+      "on_failure": "TARGETED_REPAIR",
+      "params": {
+        "min_faqs": 3,
+        "max_faqs": 6,
+        "require_claim_ids": true,
+        "derive_from_research": true,
+        "distinct_questions": true,
+        "no_competitor_names": true
+      }
+    },
+    {
+      "rule_id": "CMP-001",
+      "description": "How it compares: table only when enough suitable alternatives share overlapping verified specs (Brand and Reseller)",
+      "priority": "MANDATORY",
+      "scope": ["write", "qc"],
+      "validation_method": "CODE",
+      "on_failure": "TARGETED_REPAIR",
+      "params": {
+        "min_alternatives": 3,
+        "max_alternatives": 5,
+        "min_overlapping_specs": 2,
+        "require_comparable_specs": true,
+        "omit_when_insufficient": true,
+        "drop_incomplete_rows": true,
+        "column_label_style": "brand_model",
+        "allowed_identity": ["Brand", "Reseller"],
+        "attribute_examples": [
+          "dimensions",
+          "capacity",
+          "material",
+          "electrical rating",
+          "mounting method",
+          "compatibility",
+          "warranty",
+          "included components"
+        ],
+        "tone": "neutral_selection_aid",
+        "no_inferred_values": true,
+        "no_inline_citations": true,
+        "sources_in_pdp": false
       }
     },
     {
       "rule_id": "GEO-001",
       "description": "Address verified competitive content gaps when available",
       "priority": "PREFERRED",
-      "scope": [
-        "facts",
-        "write",
-        "qc"
-      ],
+      "scope": ["facts", "write", "qc"],
       "validation_method": "HYBRID",
       "on_failure": "FLAG",
       "params": {}
@@ -192,10 +198,7 @@
       "rule_id": "CLT-001",
       "description": "Site benefits limited to approved SGS benefits",
       "priority": "MANDATORY",
-      "scope": [
-        "write",
-        "qc"
-      ],
+      "scope": ["write", "qc"],
       "validation_method": "LLM",
       "on_failure": "TARGETED_REPAIR",
       "params": {
